@@ -839,14 +839,12 @@
                         <option value="TAMBAH">TAMBAH</option>
                         <option value="KURANG">KURANG</option>
                     </select>
-                    <p class="text-[10px] text-slate-500 mt-2 ml-1">Digunakan untuk membedakan nominal pembayaran kustomer.</p>
                 </div>
                 <div class="p-5 bg-white/30 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-700/50">
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
                         <i class="ph ph-arrows-out text-brand"></i> Maksimal Angka Unik
                     </label>
                     <input type="number" id="sysUniqueMax" placeholder="500" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                    <p class="text-[10px] text-slate-500 mt-2 ml-1">Batas angka acak (misal: 1 - 500).</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -858,19 +856,77 @@
                         <option value="TRUE">LOCKED</option>
                         <option value="FALSE">UNLOCKED</option>
                     </select>
-                    <p class="text-[10px] text-slate-500 mt-2 ml-1">Aktif/nonaktifkan sistem komisi serta cookies referal.</p>
                 </div>
                 <div class="p-5 bg-white/30 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-700/50">
                     <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
                         <i class="ph ph-clock-countdown text-brand"></i> Cookie Expiry (Hari)
                     </label>
                     <input type="number" id="sysCookieDays" placeholder="30" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                    <p class="text-[10px] text-slate-500 mt-2 ml-1">Lama link affiliate nempel di browser kustomer.</p>
                 </div>
             </div>
-            <div class="pt-4">
-                <button onclick="window.saveSystemSettings()" id="btnSaveSys" class="bg-gradient-to-r from-brand to-purple-600 hover:from-brandHover hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-brand/30 w-full sm:w-auto">SIMPAN KONFIGURASI SISTEM</button>
+        </div>
+    </div>
+
+    <div class="glass rounded-3xl shadow-xl p-8 border border-white/40 dark:border-slate-700/50">
+        <h3 class="text-xl font-black text-slate-800 dark:text-white mb-6 border-b border-white/40 dark:border-slate-700/50 pb-4">Email Integration Control</h3>
+        <div class="space-y-6">
+            <div class="p-5 bg-white/30 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-700/50">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Pilih Provider Email</label>
+                <select id="sysEmailProvider" onchange="window.toggleEmailForms()" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand outline-none transition-all dark:text-white">
+                    <option value="NONE">-- Tidak Ada Sinkronisasi --</option>
+                    <option value="MAILKETING">Mailketing API</option>
+                    <option value="JOWMAIL">Jowmail API</option>
+                    <option value="KIRIMEMAIL">Kirim.Email API</option>
+                    <option value="SMTP">SMTP (Email Hosting)</option>
+                </select>
             </div>
+
+            <div id="form-MAILKETING" class="email-config-form hidden space-y-4">
+                <input type="text" id="MAILKETING_TOKEN" placeholder="Mailketing API Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="text" id="MAILKETING_FROM_EMAIL" placeholder="Sender Email" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="text" id="MAILKETING_FROM_NAME" placeholder="Sender Name" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+            </div>
+
+            <div id="form-JOWMAIL" class="email-config-form hidden space-y-4">
+                <input type="text" id="JOWMAIL_TOKEN" placeholder="Jowmail API Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="text" id="JOWMAIL_LIST_ID" placeholder="List ID" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+            </div>
+
+            <div id="form-KIRIMEMAIL" class="email-config-form hidden space-y-4">
+                <input type="text" id="KIRIMEMAIL_AUTH_ID" placeholder="Kirim.Email Auth ID" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="password" id="KIRIMEMAIL_AUTH_TOKEN" placeholder="Kirim.Email Auth Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="text" id="KIRIMEMAIL_LIST_ID" placeholder="List ID (Cth: 24)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+            </div>
+
+            <div id="form-SMTP" class="email-config-form hidden space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="SMTP_HOST" placeholder="SMTP Host" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                    <input type="number" id="SMTP_PORT" placeholder="Port (465)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                </div>
+                <input type="text" id="SMTP_USER" placeholder="SMTP User" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                <input type="password" id="SMTP_PASS" placeholder="SMTP Password" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+            </div>
+
+            <div class="pt-6 border-t border-white/40 dark:border-slate-700/50 space-y-4">
+                <label class="block text-sm font-black text-slate-800 dark:text-white"><i class="ph ph-qr-code"></i> Checkout & Payment Settings</label>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase px-2">Link Gambar QRIS</label>
+                    <input type="text" id="sysQrisUrl" placeholder="https://link-gambar-qris.png" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase px-2">Teks Tombol Redirect</label>
+                        <input type="text" id="sysAfterBtnText" placeholder="Contoh: Thank You" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase px-2">URL Link Redirect</label>
+                        <input type="text" id="sysAfterBtnUrl" placeholder="https://imersone.my.id/terimakasih" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none dark:text-white font-bold">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pt-6">
+            <button onclick="window.saveSystemSettings()" id="btnSaveSys" class="bg-gradient-to-r from-brand to-purple-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl w-full sm:w-auto">SIMPAN KONFIGURASI SISTEM</button>
         </div>
     </div>
 </div>
