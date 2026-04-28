@@ -1502,7 +1502,7 @@
      JAVASCRIPT LOGIC (app.js)
      ========================================== -->
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNQchwNjoK6QrPeRh_a3gi9u1N_jWyQdECkwYqxcebtDwA2dvI0aKNpfbUU65ag7_DYg/exec"; // GANTI DENGAN URL WEB APP LO
+    const SCRIPT_URL = "URL_WEB_APP_APPS_SCRIPT_LO_DISINI"; // GANTI DENGAN URL WEB APP LO
 
     window.showToast = (m, t = 'success') => {
         const el = document.getElementById('toast');
@@ -3457,7 +3457,8 @@
     // ==========================================
     // CHECKOUT LOGIC
     // ==========================================
-   
+
+
     window.loadCheckoutProduct = async (id) => { 
         try { 
             // 1. Ambil data secara bersamaan termasuk settingan sistem (Kode Unik/Lock)
@@ -3495,6 +3496,7 @@
             } 
 
             // --- PROTEKSI RENDER ---
+            // Kita cek dulu apakah fungsinya sudah siap sebelum dipanggil
             if (typeof window.recalculateCheckout === 'function') {
                 window.recalculateCheckout(); 
             }
@@ -3510,6 +3512,7 @@
             } 
         } catch(e) { 
             console.error(e); 
+            // Toast hanya muncul jika data produk benar-benar gagal diambil
             if(!window.appState.currentCheckoutProduct) {
                 window.showToast("Gagal memuat data checkout", "error");
             }
@@ -3564,8 +3567,7 @@
         }
 
         // 3. RENDER NOMINAL KE UI
-        const feeEl = document.getElementById('coFee');
-        if(feeEl) feeEl.innerText = isFree ? 'Rp 0' : window.formatRp(uniqueCode);
+        document.getElementById('coFee').innerText = isFree ? 'Rp 0' : window.formatRp(uniqueCode);
 
         const uniqueLabel = document.getElementById('coUniqueCodeLabel');
         if(uniqueLabel) {
@@ -3578,32 +3580,32 @@
         }
 
         // 4. RENDER TOTAL HARGA
-        let finalHtml = "";
         if (t === 0) {
-            finalHtml = "Rp 0";
+            const zeroText = "Rp 0";
+            document.getElementById('coTotal').innerHTML = zeroText; 
+            if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = zeroText; 
         } else {
             const ts = String(Math.floor(t)).padStart(4, '0');
             const r = ts.slice(0, -3);
             const l = ts.slice(-3); 
             const formattedRest = new Intl.NumberFormat('id-ID').format(Number(r));
-            finalHtml = `Rp ${formattedRest}.<span class="text-red-500 dark:text-red-400 font-black">${l}</span>`;
+            
+            const finalHtml = `Rp ${formattedRest}.<span class="text-red-500 dark:text-red-400 font-black">${l}</span>`;
+            
+            document.getElementById('coTotal').innerHTML = finalHtml; 
+            if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = finalHtml;
         }
 
-        const coTotal = document.getElementById('coTotal');
-        if(coTotal) coTotal.innerHTML = finalHtml;
-        const coTotalPay = document.getElementById('coTotalPay');
-        if(coTotalPay) coTotalPay.innerHTML = finalHtml;
-
-        // --- 5. LOGIK QRIS & BUTTON DINAMIS (PROTEKSI AGAR TIDAK ERROR) ---
+        // --- 5. LOGIK QRIS & BUTTON DINAMIS (TAMBAHAN BARU) ---
         const sysConfig = window.appState.systemSettings || {};
         
-        // Update Link Gambar QRIS (Hanya jika elemennya ada di layar)
+        // Update Link Gambar QRIS
         const qrisImg = document.getElementById('qrisImageDisplay');
         if (qrisImg && sysConfig.QRIS_IMAGE_URL) {
             qrisImg.src = sysConfig.QRIS_IMAGE_URL;
         }
 
-        // Update Teks & URL Tombol Redirect (Hanya jika elemennya ada di layar)
+        // Update Teks & URL Tombol Redirect
         const btnRedirect = document.getElementById('btnAfterCheckout');
         if (btnRedirect) {
             if (sysConfig.AFTER_CHECKOUT_BTN_TEXT) {
@@ -3614,148 +3616,156 @@
             }
         }
     };
+    window.applyVoucher = async () => { 
+        const cd = document.getElementById('coVoucherInput').value.toUpperCase().trim(); 
+        if(!cd) return; 
+        try { 
+            const r = await apiCall('getCoupons'); 
+            const f = (r.data||[]).find(x => x.code === cd); 
+            if(f && (f.applicableProductId === 'all' || String(f.applicableProductId) === String(window.appState.currentCheckoutProduct.id))){ 
+                window.appState.currentCheckoutCoupon = f; 
+                window.showToast("Kupon diterapkan!"); 
+                window.recalculateCheckout(); 
+            } else {
+                window.appState.currentCheckoutCoupon = null; 
+                window.recalculateCheckout(); 
+                window.showToast("Kupon tidak valid!", "error");
+            } 
+        } catch(e) { console.error(e); } 
+    };
 
     window.submitCheckout = async () => {
-        const btn = document.getElementById('btnSubmitCheckout');
-        if (!btn) return;
+    const btn = document.getElementById('btnSubmitCheckout');
+    if (!btn) return;
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Processing...';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Processing...';
 
-        try {
-            const pd = window.appState.currentCheckoutProduct;
-            const n = document.getElementById('coName').value.trim();
-            const e = document.getElementById('coEmail').value.trim();
-            const w = window.formatPhoneNumber(document.getElementById('coWA').value);
-            const p = document.getElementById('coPassword').value;
-            const selectedRadio = document.querySelector('input[name="paymentMethod"]:checked');
-            const selectedMethod = selectedRadio ? selectedRadio.value : 'Bank Transfer';
-            
-            const c = window.appState.currentCheckoutCoupon;
-            const d = c ? (c.type === 'percent' ? pd.price * (c.value / 100) : c.value) : 0;
-            const unique = window.appState.currentCheckoutUniqueCode || 0;
-            const mode = window.appState.uniqueCodeMode || "KURANG";
-            
-            let t = (pd.price > 0 && (pd.price - d) > 0) ? (mode === "TAMBAH" ? (pd.price - d + unique) : (pd.price - d - unique)) : 0;
-            if (t < 0) t = 0;
+    try {
+        const pd = window.appState.currentCheckoutProduct;
+        const n = document.getElementById('coName').value.trim();
+        const e = document.getElementById('coEmail').value.trim();
+        const w = window.formatPhoneNumber(document.getElementById('coWA').value);
+        const p = document.getElementById('coPassword').value;
+        const selectedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+        const selectedMethod = selectedRadio ? selectedRadio.value : 'Bank Transfer';
+        
+        const c = window.appState.currentCheckoutCoupon;
+        const d = c ? (c.type === 'percent' ? pd.price * (c.value / 100) : c.value) : 0;
+        const unique = window.appState.currentCheckoutUniqueCode || 0;
+        const mode = window.appState.uniqueCodeMode || "KURANG";
+        
+        let t = 0;
+        if (pd.price > 0 && (pd.price - d) > 0) {
+            t = mode === "TAMBAH" ? (pd.price - d + unique) : (pd.price - d - unique);
+        } else {
+            t = 0;
+        }
 
-            const finalStatus = t <= 0 ? 'Paid' : 'Pending';
-            if (!n || !e || !w) throw new Error("Nama, Email, dan WA wajib diisi!");
+        const finalStatus = t <= 0 ? 'Paid' : 'Pending';
+        if (!n || !e || !w) throw new Error("Nama, Email, dan WA wajib diisi!");
 
-            await apiCall('saveOrder', {
-                customerName: n, customerEmail: e, customerWA: w,
-                productId: pd.id, productTitle: pd.title, basePrice: pd.price,
-                discountApplied: d, uniqueCode: unique, totalPay: t,
-                paymentMethod: selectedMethod, status: finalStatus,
-                userPasswordHash: window.appState.user ? window.appState.user.password : await window.hashPassword(p),
-                affiliateRef: localStorage.getItem('affiliateRef') || null
-            });
+        await apiCall('saveOrder', {
+            customerName: n,
+            customerEmail: e,
+            customerWA: w,
+            productId: pd.id,
+            productTitle: pd.title,
+            basePrice: pd.price,
+            discountApplied: d,
+            uniqueCode: unique, 
+            totalPay: t,
+            paymentMethod: selectedMethod,
+            status: finalStatus,
+            userPasswordHash: window.appState.user ? window.appState.user.password : await window.hashPassword(p),
+            affiliateRef: localStorage.getItem('affiliateRef') || null
+        });
 
-            const successView = document.getElementById('view-checkout');
-            const sysConfig = window.appState.systemSettings || {};
-            const qrisUrl = sysConfig.QRIS_IMAGE_URL || '';
-            const afterBtnText = sysConfig.AFTER_CHECKOUT_BTN_TEXT || 'Ke Dashboard';
-            const afterBtnUrl = sysConfig.AFTER_CHECKOUT_BTN_URL || '/';
+        const successView = document.getElementById('view-checkout');
+        
+        // --- AMBIL DATA SETTINGAN ADMIN ---
+        const sysConfig = window.appState.systemSettings || {};
+        const qrisUrl = sysConfig.QRIS_IMAGE_URL || '';
+        const afterBtnText = sysConfig.AFTER_CHECKOUT_BTN_TEXT || 'Ke Dashboard';
+        const afterBtnUrl = sysConfig.AFTER_CHECKOUT_BTN_URL || '/';
 
-            if (t <= 0) {
-                successView.innerHTML = `
-                    <div class="max-w-md mx-auto py-20 px-6 text-center animate-in fade-in duration-500">
-                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
-                            <i class="ph-fill ph-check-circle text-5xl"></i>
-                        </div>
-                        <h2 class="text-3xl font-black mb-4">Akses Aktif!</h2>
-                        <p class="text-slate-500 mb-8">Produk gratis Anda sudah bisa diakses. Silakan login untuk memulai.</p>
-                        <button onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30">${afterBtnText}</button>
-                    </div>`;
-            } else {
-                const banks = window.appState.settings.banks || [];
-                let bankListHtml = banks.map(b => `
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 mb-3 text-left">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${b.name}</span>
-                            <i class="ph ph-bank text-brand"></i>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <div class="text-xl font-black text-slate-800 dark:text-white">${b.no}</div>
-                            <button onclick="navigator.clipboard.writeText('${b.no}'); window.showToast('Rekening disalin')" class="text-brand p-2 hover:bg-brand/10 rounded-lg transition-colors">
-                                <i class="ph ph-copy"></i>
-                            </button>
-                        </div>
-                        <div class="text-xs text-slate-500 font-medium mt-1">a.n <span class="uppercase">${b.owner}</span></div>
-                    </div>`).join('');
+        if (t <= 0) {
+            successView.innerHTML = `
+                <div class="max-w-md mx-auto py-20 px-6 text-center animate-in fade-in duration-500">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
+                        <i class="ph-fill ph-check-circle text-5xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-black mb-4">Akses Aktif!</h2>
+                    <p class="text-slate-500 mb-8">Produk gratis Anda sudah bisa diakses. Silakan login untuk memulai.</p>
+                    <button onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30">${afterBtnText}</button>
+                </div>`;
+        } else {
+            const banks = window.appState.settings.banks || [];
+            let bankListHtml = banks.map(b => `
+                <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 mb-3 text-left">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${b.name}</span>
+                        <i class="ph ph-bank text-brand"></i>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-xl font-black text-slate-800 dark:text-white">${b.no}</div>
+                        <button onclick="navigator.clipboard.writeText('${b.no}'); window.showToast('Rekening disalin')" class="text-brand p-2 hover:bg-brand/10 rounded-lg transition-colors">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                    <div class="text-xs text-slate-500 font-medium mt-1">a.n <span class="uppercase">${b.owner}</span></div>
+                </div>`).join('');
 
-                successView.innerHTML = `
-                    <div class="max-w-md mx-auto py-10 px-4 text-center animate-in zoom-in duration-300">
-                        <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Order Diterima!</h2>
-                        <p class="text-sm text-slate-500 mb-8 font-medium">Lakukan transfer agar akses produk terbuka.</p>
+            successView.innerHTML = `
+                <div class="max-w-md mx-auto py-10 px-4 text-center animate-in zoom-in duration-300">
+                    <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Order Diterima!</h2>
+                    <p class="text-sm text-slate-500 mb-8 font-medium">Lakukan transfer agar akses produk terbuka.</p>
 
-                        <div class="glass p-6 rounded-[2.5rem] border border-white/50 dark:border-slate-800 shadow-2xl relative overflow-hidden text-left mb-8">
-                            <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand/10 rounded-full blur-3xl"></div>
-                            <div class="relative z-10">
-                                
-                                ${qrisUrl ? `
-                                <div class="mb-6 p-4 bg-white rounded-2xl shadow-inner text-center">
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center font-black">SCAN / DOWNLOAD QRIS</p>
-                                    <img id="qrisImageDisplay" src="${qrisUrl}" class="w-full h-auto mx-auto max-w-[250px] rounded-lg mb-4" alt="QRIS">
-                                    <button type="button" onclick="window.downloadQRIS('${qrisUrl}')" class="flex items-center gap-2 px-4 py-2 bg-brand text-white text-[10px] font-black rounded-xl mx-auto uppercase tracking-wider shadow-lg">
-                                        <i class="ph-bold ph-download-simple text-sm"></i> SIMPAN QRIS KE GALERI
-                                    </button>
-                                </div>` : ''}
+                    <div class="glass p-6 rounded-[2.5rem] border border-white/50 dark:border-slate-800 shadow-2xl relative overflow-hidden text-left mb-8">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand/10 rounded-full blur-3xl"></div>
+                        <div class="relative z-10">
+                            
+                            ${qrisUrl ? `
+                            <div class="mb-6 p-4 bg-white rounded-2xl shadow-inner text-center">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Scan QRIS Untuk Bayar</p>
+                                <img src="${qrisUrl}" class="w-full h-auto mx-auto max-w-[250px]" alt="QRIS">
+                            </div>
+                            ` : ''}
 
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-1">Total Transfer</p>
-                                <div class="text-3xl font-black text-brand text-center mb-1 flex items-center justify-center gap-2">
-                                    <span>${window.formatRp(t)}</span>
-                                    <button onclick="navigator.clipboard.writeText('${t}'); window.showToast('Nominal disalin')" class="text-slate-300 hover:text-brand">
-                                        <i class="ph ph-copy text-sm"></i>
-                                    </button>
-                                </div>
-                                <p class="text-center text-[10px] font-bold text-amber-600 uppercase mb-6">*Termasuk Kode Unik: ${unique}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-1">Total Transfer</p>
+                            <div class="text-3xl font-black text-brand text-center mb-1 flex items-center justify-center gap-2">
+                                <span>${window.formatRp(t)}</span>
+                                <button onclick="navigator.clipboard.writeText('${t}'); window.showToast('Nominal disalin')" class="text-slate-300 hover:text-brand">
+                                    <i class="ph ph-copy text-sm"></i>
+                                </button>
+                            </div>
+                            <p class="text-center text-[10px] font-bold text-amber-600 uppercase mb-6">*Termasuk Kode Unik: ${unique}</p>
 
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-3">Rekening Pembayaran:</p>
-                                ${bankListHtml || '<p class="text-center text-xs text-slate-400 italic">Data bank belum diatur di admin.</p>'}
-                                
-                                <div class="mt-6 p-4 bg-brand/5 dark:bg-brand/10 rounded-2xl border border-brand/10 text-center">
-                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                        <strong>PENTING:</strong> Transfer <strong>SAMA PERSIS</strong> untuk verifikasi otomatis.
-                                    </p>
-                                </div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-3">Rekening Pembayaran:</p>
+                            ${bankListHtml || '<p class="text-center text-xs text-slate-400 italic">Data bank belum diatur di admin.</p>'}
+                            
+                            <div class="mt-6 p-4 bg-brand/5 dark:bg-brand/10 rounded-2xl border border-brand/10 text-center">
+                                <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    <strong>PENTING:</strong> Transfer <strong>SAMA PERSIS</strong> untuk verifikasi otomatis.
+                                </p>
                             </div>
                         </div>
+                    </div>
 
-                        <button id="btnAfterCheckout" onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30 transition-all mb-4">
-                            ${afterBtnText}
-                        </button>
-                        <p class="text-xs text-slate-400 italic font-medium text-center italic">Instruksi ini juga sudah kami kirim ke WhatsApp Anda.</p>
-                    </div>`;
-            }
-            window.showToast("Order Berhasil Dibuat!");
-        } catch (err) {
-            window.showToast(err.message, "error");
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = 'CREATE ORDER';
+                    <button onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30 transition-all mb-4">
+                        ${afterBtnText}
+                    </button>
+                    <p class="text-xs text-slate-400 italic font-medium text-center">Instruksi ini juga sudah kami kirim ke WhatsApp Anda.</p>
+                </div>`;
         }
-    };
-
-    window.downloadQRIS = async (url) => {
-        try {
-            window.showToast("Mengunduh QRIS...", "info");
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = 'QRIS-' + Date.now() + '.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(blobUrl);
-        } catch (e) {
-            window.open(url, '_blank');
-            window.showToast("Klik tahan gambar untuk simpan", "info");
-        }
-    };
-    
+        window.showToast("Order Berhasil Dibuat!");
+    } catch (err) {
+        window.showToast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'CREATE ORDER';
+    }
+};
     // ==========================================
     // ORDERS CRUD LOGIC (SEARCH & PAGINATION)
     // ==========================================
