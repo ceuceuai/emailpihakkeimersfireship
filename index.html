@@ -946,51 +946,65 @@
                 </select>
             </div>
 
-            <div id="emailFormsArea">
-                <div id="form-MAILKETING" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="MAILKETING_TOKEN" placeholder="API Token Mailketing" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="text" id="MAILKETING_FROM_EMAIL" placeholder="Sender Email (e.g. admin@domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="text" id="MAILKETING_FROM_NAME" placeholder="Sender Name (e.g. Admin iMers)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white col-span-1 md:col-span-2">
-                    </div>
-                    <button onclick="testProviderConnection('MAILKETING')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
-                        <i class="ph ph-paper-plane-tilt"></i> TEST MAILKETING
-                    </button>
-                </div>
-
-                <div id="form-JOWMAIL" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="JOWMAIL_TOKEN" placeholder="Jowmail API Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="text" id="JOWMAIL_LIST_ID" placeholder="List ID" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                    </div>
-                    <button onclick="testProviderConnection('JOWMAIL')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
-                        <i class="ph ph-paper-plane-tilt"></i> TEST JOWMAIL
-                    </button>
-                </div>
-
-                <div id="form-SMTP" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="SMTP_HOST" placeholder="SMTP Host (mail.domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="number" id="SMTP_PORT" placeholder="Port (465/587)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="text" id="SMTP_USER" placeholder="SMTP User/Email" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                        <input type="password" id="SMTP_PASS" placeholder="SMTP Password" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                    </div>
-                    <button onclick="testProviderConnection('SMTP')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
-                        <i class="ph ph-paper-plane-tilt"></i> TEST SMTP CONNECTION
-                    </button>
-                </div>
-            </div>
+            <div id="emailFormsArea" class="space-y-4">
+    <!-- 1. FORM MAILKETING -->
+    <div id="form-MAILKETING" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" id="MAILKETING_TOKEN" placeholder="API Token Mailketing" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="text" id="MAILKETING_FROM_EMAIL" placeholder="Sender Email (e.g. admin@domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="text" id="MAILKETING_FROM_NAME" placeholder="Sender Name (e.g. Admin iMers)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white col-span-1 md:col-span-2">
         </div>
+        <button onclick="testProviderConnection('MAILKETING')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
+            <i class="ph ph-paper-plane-tilt"></i> TEST MAILKETING
+        </button>
     </div>
 
-    <div class="pt-4">
-        <button onclick="window.saveSystemSettings()" id="btnSaveSys" class="bg-gradient-to-r from-brand to-purple-600 hover:from-brandHover hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-brand/30 w-full sm:w-auto">
-            SIMPAN KONFIGURASI SISTEM
+    <!-- 2. FORM JOWMAIL -->
+    <div id="form-JOWMAIL" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" id="JOWMAIL_TOKEN" placeholder="Jowmail API Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="text" id="JOWMAIL_LIST_ID" placeholder="List ID" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+        </div>
+        <button onclick="testProviderConnection('JOWMAIL')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
+            <i class="ph ph-paper-plane-tilt"></i> TEST JOWMAIL
+        </button>
+    </div>
+
+    <!-- 3. FORM KIRIM.EMAIL (NEW - SINKRON DENGAN INTEGRATIONS.GS) -->
+    <div id="form-KIRIMEMAIL" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-slate-400 uppercase px-2">Auth ID</label>
+                <input type="text" id="KIRIMEMAIL_AUTH_ID" placeholder="Kirim.Email Auth ID" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-slate-400 uppercase px-2">Auth Token</label>
+                <input type="password" id="KIRIMEMAIL_AUTH_TOKEN" placeholder="Kirim.Email Auth Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
+            </div>
+            <div class="space-y-1 col-span-1 md:col-span-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase px-2">List ID</label>
+                <input type="text" id="KIRIMEMAIL_LIST_ID" placeholder="List ID Target" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
+            </div>
+        </div>
+        <button onclick="testProviderConnection('KIRIMEMAIL')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
+            <i class="ph ph-paper-plane-tilt"></i> TEST KIRIM.EMAIL
+        </button>
+    </div>
+
+    <!-- 4. FORM SMTP -->
+    <div id="form-SMTP" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" id="SMTP_HOST" placeholder="SMTP Host (mail.domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="number" id="SMTP_PORT" placeholder="Port (465/587)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="text" id="SMTP_USER" placeholder="SMTP User/Email" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+            <input type="password" id="SMTP_PASS" placeholder="SMTP Password" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+        </div>
+        <button onclick="testProviderConnection('SMTP')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
+            <i class="ph ph-paper-plane-tilt"></i> TEST SMTP CONNECTION
         </button>
     </div>
 </div>
-</div>
-                <div id="content-settings" class="content-section hidden space-y-8 max-w-4xl">
+            <div id="content-settings" class="content-section hidden space-y-8 max-w-4xl">
                     <div class="glass rounded-3xl shadow-xl p-8 border border-white/40 dark:border-slate-700/50">
                         <h3 class="text-xl font-black text-slate-800 dark:text-white mb-6 border-b border-white/40 dark:border-slate-700/50 pb-4">Admin Settings</h3>
                         <div class="space-y-8">
