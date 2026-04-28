@@ -3458,6 +3458,10 @@
     // CHECKOUT LOGIC
     // ==========================================
 
+    // ==========================================
+    // CHECKOUT LOGIC
+    // ==========================================
+
     window.loadCheckoutProduct = async (id) => { 
         try { 
             // 1. Ambil data secara bersamaan termasuk settingan sistem (Kode Unik/Lock)
@@ -3494,8 +3498,15 @@
                 ic.className = "w-14 h-14 rounded-xl overflow-hidden shrink-0";
             } 
 
-            window.recalculateCheckout(); 
-            window.renderCheckoutPaymentMethods(); 
+            // --- PROTEKSI RENDER ---
+            // Kita cek dulu apakah fungsinya sudah siap sebelum dipanggil
+            if (typeof window.recalculateCheckout === 'function') {
+                window.recalculateCheckout(); 
+            }
+            
+            if (typeof window.renderCheckoutPaymentMethods === 'function') {
+                window.renderCheckoutPaymentMethods(); 
+            }
 
             const r = localStorage.getItem('affiliateRef'); 
             if(r){
@@ -3504,108 +3515,110 @@
             } 
         } catch(e) { 
             console.error(e); 
-            window.showToast("Gagal memuat data checkout", "error");
+            // Toast hanya muncul jika data produk benar-benar gagal diambil
+            if(!window.appState.currentCheckoutProduct) {
+                window.showToast("Gagal memuat data checkout", "error");
+            }
         } 
     };
 
     window.recalculateCheckout = () => { 
-    const p = window.appState.currentCheckoutProduct;
-    const c = window.appState.currentCheckoutCoupon;
-    const u = window.appState.currentCheckoutUniqueCode; 
-    const mode = window.appState.uniqueCodeMode || "KURANG";
-    
-    if(!p) return; 
-
-    // 1. HITUNG DISKON
-    let d = 0; 
-    if(c){
-        d = c.type === 'percent' ? p.price * (c.value / 100) : c.value; 
-        if(d > p.price) d = p.price; 
+        const p = window.appState.currentCheckoutProduct;
+        const c = window.appState.currentCheckoutCoupon;
+        const u = window.appState.currentCheckoutUniqueCode; 
+        const mode = window.appState.uniqueCodeMode || "KURANG";
         
-        document.getElementById('coDiscountRow').classList.remove('hidden'); 
-        document.getElementById('coDiscountCodeDisplay').innerText = c.code; 
-        document.getElementById('coDiscountAmount').innerText = '- ' + window.formatRp(d); 
-    } else {
-        document.getElementById('coDiscountRow').classList.add('hidden');
-    } 
-    
-    // 2. LOGIKA HARGA & KODE UNIK
-    let t = 0;
-    let uniqueCode = u; 
-    const feeRow = document.getElementById('coFee').closest('.flex'); 
-    const labelElement = document.getElementById('coFee').previousElementSibling;
+        if(!p) return; 
 
-    const isFree = (p.price === 0 || (p.price - d) <= 0);
-
-    if (isFree) {
-        t = 0;
-        uniqueCode = 0;
-        if(feeRow) feeRow.classList.add('hidden');
-    } else {
-        if(feeRow) feeRow.classList.remove('hidden');
-        if(labelElement) labelElement.innerText = 'Kode Unik';
-
-        let baseAfterDiscount = p.price - d;
-        
-        if (mode === "TAMBAH") {
-            t = baseAfterDiscount + uniqueCode;
+        // 1. HITUNG DISKON
+        let d = 0; 
+        if(c){
+            d = c.type === 'percent' ? p.price * (c.value / 100) : c.value; 
+            if(d > p.price) d = p.price; 
+            
+            document.getElementById('coDiscountRow').classList.remove('hidden'); 
+            document.getElementById('coDiscountCodeDisplay').innerText = c.code; 
+            document.getElementById('coDiscountAmount').innerText = '- ' + window.formatRp(d); 
         } else {
-            t = baseAfterDiscount - uniqueCode;
-        }
-        if (t < 0) t = 0;
-    }
+            document.getElementById('coDiscountRow').classList.add('hidden');
+        } 
+        
+        // 2. LOGIKA HARGA & KODE UNIK
+        let t = 0;
+        let uniqueCode = u; 
+        const feeRow = document.getElementById('coFee').closest('.flex'); 
+        const labelElement = document.getElementById('coFee').previousElementSibling;
 
-    // 3. RENDER NOMINAL KE UI
-    document.getElementById('coFee').innerText = isFree ? 'Rp 0' : window.formatRp(uniqueCode);
+        const isFree = (p.price === 0 || (p.price - d) <= 0);
 
-    const uniqueLabel = document.getElementById('coUniqueCodeLabel');
-    if(uniqueLabel) {
-        if(!isFree && uniqueCode > 0) {
-            uniqueLabel.innerText = `*Sudah termasuk kode unik (${mode === 'TAMBAH' ? '+' : '-'}${uniqueCode})`;
-            uniqueLabel.classList.remove('hidden');
+        if (isFree) {
+            t = 0;
+            uniqueCode = 0;
+            if(feeRow) feeRow.classList.add('hidden');
         } else {
-            uniqueLabel.classList.add('hidden');
-        }
-    }
+            if(feeRow) feeRow.classList.remove('hidden');
+            if(labelElement) labelElement.innerText = 'Kode Unik';
 
-    // 4. RENDER TOTAL HARGA
-    if (t === 0) {
-        const zeroText = "Rp 0";
-        document.getElementById('coTotal').innerHTML = zeroText; 
-        if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = zeroText; 
-    } else {
-        const ts = String(Math.floor(t)).padStart(4, '0');
-        const r = ts.slice(0, -3);
-        const l = ts.slice(-3); 
-        const formattedRest = new Intl.NumberFormat('id-ID').format(Number(r));
+            let baseAfterDiscount = p.price - d;
+            
+            if (mode === "TAMBAH") {
+                t = baseAfterDiscount + uniqueCode;
+            } else {
+                t = baseAfterDiscount - uniqueCode;
+            }
+            if (t < 0) t = 0;
+        }
+
+        // 3. RENDER NOMINAL KE UI
+        document.getElementById('coFee').innerText = isFree ? 'Rp 0' : window.formatRp(uniqueCode);
+
+        const uniqueLabel = document.getElementById('coUniqueCodeLabel');
+        if(uniqueLabel) {
+            if(!isFree && uniqueCode > 0) {
+                uniqueLabel.innerText = `*Sudah termasuk kode unik (${mode === 'TAMBAH' ? '+' : '-'}${uniqueCode})`;
+                uniqueLabel.classList.remove('hidden');
+            } else {
+                uniqueLabel.classList.add('hidden');
+            }
+        }
+
+        // 4. RENDER TOTAL HARGA
+        if (t === 0) {
+            const zeroText = "Rp 0";
+            document.getElementById('coTotal').innerHTML = zeroText; 
+            if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = zeroText; 
+        } else {
+            const ts = String(Math.floor(t)).padStart(4, '0');
+            const r = ts.slice(0, -3);
+            const l = ts.slice(-3); 
+            const formattedRest = new Intl.NumberFormat('id-ID').format(Number(r));
+            
+            const finalHtml = `Rp ${formattedRest}.<span class="text-red-500 dark:text-red-400 font-black">${l}</span>`;
+            
+            document.getElementById('coTotal').innerHTML = finalHtml; 
+            if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = finalHtml;
+        }
+
+        // --- 5. LOGIK QRIS & BUTTON DINAMIS (TAMBAHAN BARU) ---
+        const sysConfig = window.appState.systemSettings || {};
         
-        const finalHtml = `Rp ${formattedRest}.<span class="text-red-500 dark:text-red-400 font-black">${l}</span>`;
-        
-        document.getElementById('coTotal').innerHTML = finalHtml; 
-        if(document.getElementById('coTotalPay')) document.getElementById('coTotalPay').innerHTML = finalHtml;
-    }
-
-    // --- 5. LOGIK QRIS & BUTTON DINAMIS (TAMBAHAN BARU) ---
-    const sysConfig = window.appState.systemSettings || {};
-    
-    // Update Link Gambar QRIS
-    const qrisImg = document.getElementById('qrisImageDisplay');
-    if (qrisImg && sysConfig.QRIS_IMAGE_URL) {
-        qrisImg.src = sysConfig.QRIS_IMAGE_URL;
-    }
-
-    // Update Teks & URL Tombol Redirect
-    const btnRedirect = document.getElementById('btnAfterCheckout');
-    if (btnRedirect) {
-        if (sysConfig.AFTER_CHECKOUT_BTN_TEXT) {
-            btnRedirect.innerText = sysConfig.AFTER_CHECKOUT_BTN_TEXT;
+        // Update Link Gambar QRIS
+        const qrisImg = document.getElementById('qrisImageDisplay');
+        if (qrisImg && sysConfig.QRIS_IMAGE_URL) {
+            qrisImg.src = sysConfig.QRIS_IMAGE_URL;
         }
-        if (sysConfig.AFTER_CHECKOUT_BTN_URL) {
-            btnRedirect.href = sysConfig.AFTER_CHECKOUT_BTN_URL;
-        }
-    }
-};
 
+        // Update Teks & URL Tombol Redirect
+        const btnRedirect = document.getElementById('btnAfterCheckout');
+        if (btnRedirect) {
+            if (sysConfig.AFTER_CHECKOUT_BTN_TEXT) {
+                btnRedirect.innerText = sysConfig.AFTER_CHECKOUT_BTN_TEXT;
+            }
+            if (sysConfig.AFTER_CHECKOUT_BTN_URL) {
+                btnRedirect.href = sysConfig.AFTER_CHECKOUT_BTN_URL;
+            }
+        }
+    };
     window.applyVoucher = async () => { 
         const cd = document.getElementById('coVoucherInput').value.toUpperCase().trim(); 
         if(!cd) return; 
