@@ -1922,7 +1922,9 @@
             window.renderSettingsBankList();
             window.renderUsersTable();
             window.renderAffiliateList();
-            ();
+
+            // RENDER SYSTEM SETTINGS (Pemanggil di baris 1925 sesuai screenshot lo)
+            window.renderSystemSettings();
 
             if (window.appState.user && window.appState.user.role !== 'admin') {
                 const btnAdd = document.getElementById('btnAddUser');
@@ -1948,14 +1950,13 @@
                     `;
                 });
             }
-            window.renderSystemSettings();
+
             window.showToast("Data berhasil dimuat!", "success");
         } catch (err) {
             console.error("Gagal memuat sebagian data:", err);
             window.showToast("Sebagian data gagal dimuat dari server.", "error");
         }
     };
-
     window.applySettingsUI = () => {
         const set = window.appState.settings;
         if(set.primaryColor) {
