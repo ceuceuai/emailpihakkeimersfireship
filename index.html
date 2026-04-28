@@ -3898,14 +3898,15 @@ window.toggleEmailForms = () => {
     if (target) target.classList.remove('hidden');
 };
 
-window.testProviderConnection = (provider) => {
+window.testProviderConnection = async (provider) => {
     const testEmail = prompt("Masukkan email tujuan untuk test:");
     if (!testEmail) return;
 
+    // Siapkan data yang mau dikirim
     const payload = {
-        action: 'testThirdParty',
         provider: provider.toLowerCase(),
         test_email: testEmail,
+        // Ambil data dari inputan UI secara real-time
         token: document.getElementById(provider + '_TOKEN')?.value || '',
         list_id: document.getElementById(provider + '_LIST_ID')?.value || '',
         host: document.getElementById('SMTP_HOST')?.value || '',
@@ -3916,11 +3917,20 @@ window.testProviderConnection = (provider) => {
         from_name: document.getElementById('MAILKETING_FROM_NAME')?.value || ''
     };
 
-    google.script.run
-        .withSuccessHandler(res => alert(res.success ? "✅ " + res.message : "❌ " + res.message))
-        .handleApiRequest(payload);
+    try {
+        // PAKAI apiCall (Bukan google.script.run)
+        const res = await apiCall('testThirdParty', payload);
+        
+        if (res.success) {
+            alert("✅ " + res.message);
+        } else {
+            alert("❌ " + (res.message || res.error || "Gagal koneksi"));
+        }
+    } catch (e) {
+        alert("Terjadi kesalahan koneksi ke server Apps Script.");
+        console.error("Test Connection Error:", e);
+    }
 };
-
 // ==========================================================
 // TAHAP 2: SAVE SYSTEM SETTINGS (DENGAN DATA EMAIL)
 // ==========================================================
