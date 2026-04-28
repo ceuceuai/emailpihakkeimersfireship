@@ -3484,11 +3484,15 @@
                 affiliateRef: localStorage.getItem('affiliateRef') || null
             });
 
-            // 2. TAMPILAN INSTRUKSI PEMBAYARAN
+            // 2. TAMPILAN INSTRUKSI PEMBAYARAN (DENGAN DATA DINAMIS QRIS & REDIRECT)
             const successView = document.getElementById('view-checkout');
+            const sysConfig = window.appState.systemSettings || {};
+            const qrisUrl = sysConfig.QRIS_IMAGE_URL || '';
+            const afterBtnText = sysConfig.AFTER_CHECKOUT_BTN_TEXT || 'Login Sekarang';
+            const afterBtnUrl = sysConfig.AFTER_CHECKOUT_BTN_URL || '/';
             
             if (t <= 0) {
-                // Tampilan Gratis (Langsung Login)
+                // Tampilan Gratis
                 successView.innerHTML = `
                     <div class="max-w-md mx-auto py-20 px-6 text-center animate-in fade-in duration-500">
                         <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
@@ -3496,10 +3500,10 @@
                         </div>
                         <h2 class="text-3xl font-black mb-4">Akses Aktif!</h2>
                         <p class="text-slate-500 mb-8">Produk gratis Anda sudah bisa diakses. Silakan login untuk memulai.</p>
-                        <button onclick="window.location.href='/'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30">Login Sekarang</button>
+                        <button onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30">${afterBtnText}</button>
                     </div>`;
             } else {
-                // TAMPILAN BERBAYAR (INSTRUKSI TRANSFER)
+                // TAMPILAN BERBAYAR
                 const banks = window.appState.settings.banks || [];
                 let bankListHtml = banks.map(b => `
                     <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 mb-3 text-left">
@@ -3524,6 +3528,12 @@
                         <div class="glass p-6 rounded-[2.5rem] border border-white/50 dark:border-slate-800 shadow-2xl relative overflow-hidden text-left mb-8">
                             <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand/10 rounded-full blur-3xl"></div>
                             <div class="relative z-10">
+                                ${qrisUrl ? `
+                                <div class="mb-6 p-4 bg-white rounded-2xl shadow-inner text-center">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Scan QRIS Untuk Bayar</p>
+                                    <img src="${qrisUrl}" class="w-full h-auto mx-auto max-w-[250px]" alt="QRIS">
+                                </div>` : ''}
+
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-1">Total Transfer</p>
                                 <div class="text-3xl font-black text-brand text-center mb-1 flex items-center justify-center gap-2">
                                     <span>${window.formatRp(t)}</span>
@@ -3534,19 +3544,17 @@
                                 <p class="text-center text-[10px] font-bold text-amber-600 uppercase mb-6">*Termasuk Kode Unik: ${unique}</p>
 
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-3">Rekening Pembayaran:</p>
-                                ${bankListHtml || '<p class="text-center text-xs text-slate-400 italic">Data bank belum diatur di admin.</p>'}
+                                ${bankListHtml || '<p class="text-center text-xs text-slate-400 italic">Data bank belum diatur.</p>'}
                                 
                                 <div class="mt-6 p-4 bg-brand/5 dark:bg-brand/10 rounded-2xl border border-brand/10 text-center">
                                     <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                                        <strong>PENTING:</strong> Transfer <strong>SAMA PERSIS</strong> sampai digit terakhir (<strong>${String(t).slice(-3)}</strong>) untuk verifikasi otomatis.
+                                        <strong>PENTING:</strong> Transfer <strong>SAMA PERSIS</strong> sampai digit terakhir untuk verifikasi otomatis.
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <button onclick="window.location.href='/'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30 transition-all mb-4">
-                            Ke Dashboard
-                        </button>
+                        <button onclick="window.location.href='${afterBtnUrl}'" class="w-full py-4 bg-brand text-white rounded-2xl font-black shadow-xl shadow-brand/30 mb-4">${afterBtnText}</button>
                         <p class="text-xs text-slate-400 italic font-medium text-center">Instruksi ini juga sudah kami kirim ke WhatsApp Anda.</p>
                     </div>`;
             }
@@ -3639,67 +3647,99 @@
         } catch(e) { window.showToast(e.message, "error"); } 
     };
 
-    // --- LOGIKA BARU: SYSTEM SETTINGS (KONTROL PANEL) ---
+    // --- LOGIKA BARU: SYSTEM SETTINGS (CONTROL PANEL) ---
     window.renderSystemSettings = () => {
-    try {
-        // Ambil data dari state. Jika kosong, gunakan default agar tidak crash.
-        const config = window.appState.systemSettings || {};
-        
-        console.log("Rendering System Settings with data:", config); // Cek di console F12
+        try {
+            const config = window.appState.systemSettings || {};
+            if (!document.getElementById('sysUniqueMode')) return;
 
-        const elements = {
-            'sysUniqueMode': config.KODE_UNIK_MODE || 'TAMBAH',
-            'sysUniqueMax': config.KODE_UNIK_MAX || '500',
-            'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
-            'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30'
-        };
+            const elements = {
+                'sysUniqueMode': config.KODE_UNIK_MODE || 'TAMBAH',
+                'sysUniqueMax': config.KODE_UNIK_MAX || '500',
+                'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
+                'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30',
+                'sysEmailProvider': config.emailProvider || 'NONE',
+                'MAILKETING_TOKEN': config.MAILKETING_TOKEN || '',
+                'MAILKETING_FROM_EMAIL': config.MAILKETING_FROM_EMAIL || '',
+                'MAILKETING_FROM_NAME': config.MAILKETING_FROM_NAME || '',
+                'JOWMAIL_TOKEN': config.JOWMAIL_TOKEN || '',
+                'JOWMAIL_LIST_ID': config.JOWMAIL_LIST_ID || '',
+                'KIRIMEMAIL_AUTH_ID': config.KIRIMEMAIL_AUTH_ID || '',
+                'KIRIMEMAIL_AUTH_TOKEN': config.KIRIMEMAIL_AUTH_TOKEN || '',
+                'KIRIMEMAIL_LIST_ID': config.KIRIMEMAIL_LIST_ID || '',
+                'SMTP_HOST': config.SMTP_HOST || '',
+                'SMTP_PORT': config.SMTP_PORT || '',
+                'SMTP_USER': config.SMTP_USER || '',
+                'SMTP_PASS': config.SMTP_PASS || '',
+                'sysQrisUrl': config.QRIS_IMAGE_URL || '',
+                'sysAfterBtnText': config.AFTER_CHECKOUT_BTN_TEXT || '',
+                'sysAfterBtnUrl': config.AFTER_CHECKOUT_BTN_URL || ''
+            };
 
-        // Looping untuk isi data ke input secara aman
-        for (const [id, value] of Object.entries(elements)) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.value = value;
-            } else {
-                console.warn(`Elemen dengan ID ${id} tidak ditemukan di HTML!`);
+            for (const [id, value] of Object.entries(elements)) {
+                const el = document.getElementById(id);
+                if (el) el.value = value;
             }
-        }
-    } catch (error) {
-        console.error("Gagal render System Settings:", error);
-    }
-};
-    window.saveSystemSettings = async () => {
-    const btn = document.getElementById('btnSaveSys'); 
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Saving...';
-    }
 
-    const payload = {
-        KODE_UNIK_MODE: document.getElementById('sysUniqueMode').value,
-        KODE_UNIK_MAX: document.getElementById('sysUniqueMax').value,
-        AFFILIATE_LOCK: document.getElementById('sysAffLock').value,
-        AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays').value
+            if (typeof window.toggleEmailForms === 'function') window.toggleEmailForms();
+        } catch (error) {
+            console.error("Gagal render System Settings:", error);
+        }
     };
 
-    try {
-        const res = await apiCall('saveSystemSettings', payload);
-        if (res.success) {
-            window.showToast("Konfigurasi sistem berhasil disimpan!", "success");
-            window.appState.systemSettings = payload; 
-        } else {
-            window.showToast(res.error || "Gagal menyimpan", "error");
+    window.toggleEmailForms = () => {
+        const elSelector = document.getElementById('sysEmailProvider');
+        if (!elSelector) return;
+        const val = elSelector.value;
+        document.querySelectorAll('.email-config-form').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById('form-' + val);
+        if (target) target.classList.remove('hidden');
+    };
+
+    window.saveSystemSettings = async () => {
+        const btn = document.getElementById('btnSaveSys'); 
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Saving...'; }
+
+        const provider = document.getElementById('sysEmailProvider')?.value || 'NONE';
+        const payload = {
+            KODE_UNIK_MODE: document.getElementById('sysUniqueMode')?.value,
+            KODE_UNIK_MAX: document.getElementById('sysUniqueMax')?.value,
+            AFFILIATE_LOCK: document.getElementById('sysAffLock')?.value,
+            AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays')?.value,
+            emailProvider: provider,
+            MAILKETING_STATUS: provider === 'MAILKETING' ? 'ON' : 'OFF',
+            JOWMAIL_STATUS: provider === 'JOWMAIL' ? 'ON' : 'OFF',
+            KIRIMEMAIL_STATUS: provider === 'KIRIMEMAIL' ? 'ON' : 'OFF',
+            SMTP_STATUS: provider === 'SMTP' ? 'ON' : 'OFF',
+            MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN')?.value || '',
+            MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL')?.value || '',
+            MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME')?.value || '',
+            JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN')?.value || '',
+            JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID')?.value || '',
+            KIRIMEMAIL_AUTH_ID: document.getElementById('KIRIMEMAIL_AUTH_ID')?.value || '',
+            KIRIMEMAIL_AUTH_TOKEN: document.getElementById('KIRIMEMAIL_AUTH_TOKEN')?.value || '',
+            KIRIMEMAIL_LIST_ID: document.getElementById('KIRIMEMAIL_LIST_ID')?.value || '',
+            SMTP_HOST: document.getElementById('SMTP_HOST')?.value || '',
+            SMTP_PORT: document.getElementById('SMTP_PORT')?.value || '',
+            SMTP_USER: document.getElementById('SMTP_USER')?.value || '',
+            SMTP_PASS: document.getElementById('SMTP_PASS')?.value || '',
+            QRIS_IMAGE_URL: document.getElementById('sysQrisUrl')?.value || '',
+            AFTER_CHECKOUT_BTN_TEXT: document.getElementById('sysAfterBtnText')?.value || '',
+            AFTER_CHECKOUT_BTN_URL: document.getElementById('sysAfterBtnUrl')?.value || ''
+        };
+
+        try {
+            const res = await apiCall('saveSystemSettings', payload);
+            if (res.success) {
+                window.showToast("Berhasil disimpan!", "success");
+                window.appState.systemSettings = payload; 
+            }
+        } catch (e) {
+            window.showToast("Gagal simpan", "error");
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = 'SIMPAN KONFIGURASI SISTEM'; }
         }
-    } catch (e) {
-        window.showToast("Terjadi kesalahan koneksi", "error");
-        console.error(e);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = 'SIMPAN KONFIGURASI SISTEM';
-        }
-    }
-};
-    // -----------------------------------------------------
+    };
 
     window.applyLogo = (src) => { 
         const l=document.getElementById('appLogoSidebar'); 
