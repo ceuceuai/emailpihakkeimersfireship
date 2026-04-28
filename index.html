@@ -3913,22 +3913,39 @@ window.renderSystemSettings = () => {
             'sysUniqueMax': config.KODE_UNIK_MAX || '500',
             'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
             'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30',
-            // --- LOAD DATA EMAIL BARU ---
+            
+            // --- LOAD DATA EMAIL ---
             'sysEmailProvider': config.emailProvider || 'GOOGLE',
             'MAILKETING_TOKEN': config.MAILKETING_TOKEN || '',
             'MAILKETING_FROM_EMAIL': config.MAILKETING_FROM_EMAIL || '',
             'MAILKETING_FROM_NAME': config.MAILKETING_FROM_NAME || '',
+            
             'JOWMAIL_TOKEN': config.JOWMAIL_TOKEN || '',
             'JOWMAIL_LIST_ID': config.JOWMAIL_LIST_ID || '',
+
+            // Tambahkan Kirim.Email biar muncul di UI
+            'KIRIMEMAIL_AUTH_ID': config.KIRIMEMAIL_AUTH_ID || '',
+            'KIRIMEMAIL_AUTH_TOKEN': config.KIRIMEMAIL_AUTH_TOKEN || '',
+            'KIRIMEMAIL_LIST_ID': config.KIRIMEMAIL_LIST_ID || '',
+
             'SMTP_HOST': config.SMTP_HOST || '',
             'SMTP_PORT': config.SMTP_PORT || '',
             'SMTP_USER': config.SMTP_USER || '',
-            'SMTP_PASS': config.SMTP_PASS || ''
+            'SMTP_PASS': config.SMTP_PASS || '',
+
+            // --- LOAD DATA QRIS & REDIRECT (BARU) ---
+            'sysQrisUrl': config.QRIS_IMAGE_URL || '',
+            'sysAfterBtnText': config.AFTER_CHECKOUT_BTN_TEXT || '',
+            'sysAfterBtnUrl': config.AFTER_CHECKOUT_BTN_URL || ''
         };
 
         for (const [id, value] of Object.entries(elements)) {
             const el = document.getElementById(id);
-            if (el) el.value = value;
+            if (el) {
+                el.value = value;
+            } else {
+                console.warn(`Element ID '${id}' tidak ditemukan di HTML.`);
+            }
         }
 
         // Jalankan toggle biar form yang bener muncul pas pertama kali buka
