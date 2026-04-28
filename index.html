@@ -3848,45 +3848,112 @@
     };
 
     // --- LOGIKA BARU: SYSTEM SETTINGS (KONTROL PANEL) ---
-    window.renderSystemSettings = () => {
+window.renderSystemSettings = () => {
     try {
-        // Ambil data dari state. Jika kosong, gunakan default agar tidak crash.
         const config = window.appState.systemSettings || {};
-        
-        console.log("Rendering System Settings with data:", config); // Cek di console F12
+        console.log("Rendering System Settings with data:", config);
 
         const elements = {
             'sysUniqueMode': config.KODE_UNIK_MODE || 'TAMBAH',
             'sysUniqueMax': config.KODE_UNIK_MAX || '500',
             'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
-            'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30'
+            'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30',
+            // --- LOAD DATA EMAIL BARU ---
+            'sysEmailProvider': config.emailProvider || 'GOOGLE',
+            'MAILKETING_TOKEN': config.MAILKETING_TOKEN || '',
+            'MAILKETING_FROM_EMAIL': config.MAILKETING_FROM_EMAIL || '',
+            'MAILKETING_FROM_NAME': config.MAILKETING_FROM_NAME || '',
+            'JOWMAIL_TOKEN': config.JOWMAIL_TOKEN || '',
+            'JOWMAIL_LIST_ID': config.JOWMAIL_LIST_ID || '',
+            'SMTP_HOST': config.SMTP_HOST || '',
+            'SMTP_PORT': config.SMTP_PORT || '',
+            'SMTP_USER': config.SMTP_USER || '',
+            'SMTP_PASS': config.SMTP_PASS || ''
         };
 
-        // Looping untuk isi data ke input secara aman
         for (const [id, value] of Object.entries(elements)) {
             const el = document.getElementById(id);
-            if (el) {
-                el.value = value;
-            } else {
-                console.warn(`Elemen dengan ID ${id} tidak ditemukan di HTML!`);
-            }
+            if (el) el.value = value;
         }
+
+        // Jalankan toggle biar form yang bener muncul pas pertama kali buka
+        if (typeof toggleEmailForms === 'function') toggleEmailForms();
+
     } catch (error) {
         console.error("Gagal render System Settings:", error);
     }
 };
-    window.saveSystemSettings = async () => {
+
+// ==========================================================
+// TAHAP 1: INTERAKSI UI EMAIL INTEGRATION (SUNTIK DI SINI)
+// ==========================================================
+window.toggleEmailForms = () => {
+    const elSelector = document.getElementById('sysEmailProvider');
+    if (!elSelector) return;
+    
+    const val = elSelector.value;
+    document.querySelectorAll('.email-config-form').forEach(el => el.classList.add('hidden'));
+    
+    const target = document.getElementById('form-' + val);
+    if (target) target.classList.remove('hidden');
+};
+
+window.testProviderConnection = (provider) => {
+    const testEmail = prompt("Masukkan email tujuan untuk test:");
+    if (!testEmail) return;
+
+    const payload = {
+        action: 'testThirdParty',
+        provider: provider.toLowerCase(),
+        test_email: testEmail,
+        token: document.getElementById(provider + '_TOKEN')?.value || '',
+        list_id: document.getElementById(provider + '_LIST_ID')?.value || '',
+        host: document.getElementById('SMTP_HOST')?.value || '',
+        port: document.getElementById('SMTP_PORT')?.value || '',
+        user: document.getElementById('SMTP_USER')?.value || '',
+        pass: document.getElementById('SMTP_PASS')?.value || '',
+        from_email: document.getElementById('MAILKETING_FROM_EMAIL')?.value || '',
+        from_name: document.getElementById('MAILKETING_FROM_NAME')?.value || ''
+    };
+
+    google.script.run
+        .withSuccessHandler(res => alert(res.success ? "✅ " + res.message : "❌ " + res.message))
+        .handleApiRequest(payload);
+};
+
+// ==========================================================
+// TAHAP 2: SAVE SYSTEM SETTINGS (DENGAN DATA EMAIL)
+// ==========================================================
+window.saveSystemSettings = async () => {
     const btn = document.getElementById('btnSaveSys'); 
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Saving...';
     }
 
+    const provider = document.getElementById('sysEmailProvider').value;
+
     const payload = {
         KODE_UNIK_MODE: document.getElementById('sysUniqueMode').value,
         KODE_UNIK_MAX: document.getElementById('sysUniqueMax').value,
         AFFILIATE_LOCK: document.getElementById('sysAffLock').value,
-        AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays').value
+        AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays').value,
+        
+        // --- DATA INTEGRASI EMAIL ---
+        emailProvider: provider,
+        MAILKETING_STATUS: provider === 'MAILKETING' ? 'ON' : 'OFF',
+        MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN').value,
+        MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL').value,
+        MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME').value,
+        
+        JOWMAIL_STATUS: provider === 'JOWMAIL' ? 'ON' : 'OFF',
+        JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value,
+        JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value,
+        
+        SMTP_HOST: document.getElementById('SMTP_HOST').value,
+        SMTP_PORT: document.getElementById('SMTP_PORT').value,
+        SMTP_USER: document.getElementById('SMTP_USER').value,
+        SMTP_PASS: document.getElementById('SMTP_PASS').value
     };
 
     try {
@@ -3907,8 +3974,6 @@
         }
     }
 };
-    // -----------------------------------------------------
-
     window.applyLogo = (src) => { 
         const l=document.getElementById('appLogoSidebar'); 
         if(src){ if(l){l.src=src;l.classList.remove('hidden');} } else { if(l){l.src='';l.classList.add('hidden');} } 
