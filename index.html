@@ -3731,7 +3731,12 @@
                             ${qrisUrl ? `
                             <div class="mb-6 p-4 bg-white rounded-2xl shadow-inner text-center">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Scan QRIS Untuk Bayar</p>
-                                <img src="${qrisUrl}" class="w-full h-auto mx-auto max-w-[250px]" alt="QRIS">
+                                <img src="${qrisUrl}" class="w-full h-auto mx-auto max-w-[250px] rounded-lg mb-4" alt="QRIS">
+                                
+                                <button onclick="window.downloadQRIS('${qrisUrl}')" class="flex items-center gap-2 px-4 py-2 bg-brand/10 text-brand text-[10px] font-black rounded-xl hover:bg-brand hover:text-white transition-all mx-auto uppercase tracking-wider">
+                                    <i class="ph-bold ph-download-simple"></i>
+                                    Simpan / Download QRIS
+                                </button>
                             </div>
                             ` : ''}
 
@@ -3767,6 +3772,31 @@
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'CREATE ORDER';
+    }
+};
+
+/**
+ * FUNGSI DOWNLOAD QRIS
+ * Memungkinkan user mendownload gambar QRIS ke galeri/PC
+ */
+window.downloadQRIS = async (url) => {
+    try {
+        window.showToast("Mengunduh QRIS...", "info");
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = 'QRIS-Pembayaran-' + Date.now() + '.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+        // Jika kena CORS (domain beda), buka di tab baru sebagai fallback
+        window.open(url, '_blank');
+        window.showToast("Klik tahan gambar untuk simpan", "info");
     }
 };
     // ==========================================
