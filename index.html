@@ -947,12 +947,13 @@
             </div>
 
             <div class="space-y-6">
+    <div class="space-y-6">
     <div id="emailFormsArea" class="space-y-4">
-        <!-- 1. FORM MAILKETING -->
+        
         <div id="form-MAILKETING" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" id="MAILKETING_TOKEN" placeholder="API Token Mailketing" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
-                <input type="text" id="MAILKETING_FROM_EMAIL" placeholder="Sender Email (e.g. admin@domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+                <input type="text" id="MAILKETING_FROM_EMAIL" placeholder="Sender Email (admin@domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
                 <input type="text" id="MAILKETING_FROM_NAME" placeholder="Sender Name (e.g. Admin iMers)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white col-span-1 md:col-span-2">
             </div>
             <button onclick="testProviderConnection('MAILKETING')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
@@ -960,7 +961,6 @@
             </button>
         </div>
 
-        <!-- 2. FORM JOWMAIL -->
         <div id="form-JOWMAIL" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" id="JOWMAIL_TOKEN" placeholder="Jowmail API Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
@@ -971,7 +971,6 @@
             </button>
         </div>
 
-        <!-- 3. FORM KIRIM.EMAIL (SINKRON DENGAN INTEGRATIONS.GS) -->
         <div id="form-KIRIMEMAIL" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-1">
@@ -983,8 +982,8 @@
                     <input type="password" id="KIRIMEMAIL_AUTH_TOKEN" placeholder="Kirim.Email Auth Token" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
                 </div>
                 <div class="space-y-1 col-span-1 md:col-span-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase px-2">List ID Target (Lihat kolom # di dashboard)</label>
-                    <input type="text" id="KIRIMEMAIL_LIST_ID" placeholder="Contoh: 21 atau 26" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
+                    <label class="text-[10px] font-black text-slate-400 uppercase px-2">List ID Target (Kolom # di Dashboard)</label>
+                    <input type="text" id="KIRIMEMAIL_LIST_ID" placeholder="Contoh: 21, 24, atau 26" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white font-bold">
                 </div>
             </div>
             <button onclick="testProviderConnection('KIRIMEMAIL')" class="px-6 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-all flex items-center gap-2">
@@ -992,10 +991,9 @@
             </button>
         </div>
 
-        <!-- 4. FORM SMTP -->
         <div id="form-SMTP" class="email-config-form hidden space-y-4 animate-in fade-in zoom-in duration-300">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" id="SMTP_HOST" placeholder="SMTP Host (mail.domain.com)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
+                <input type="text" id="SMTP_HOST" placeholder="SMTP Host" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
                 <input type="number" id="SMTP_PORT" placeholder="Port (465/587)" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
                 <input type="text" id="SMTP_USER" placeholder="SMTP User/Email" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
                 <input type="password" id="SMTP_PASS" placeholder="SMTP Password" class="w-full px-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand dark:text-white">
@@ -1006,7 +1004,6 @@
         </div>
     </div>
 
-    <!-- TOMBOL SIMPAN GLOBAL -->
     <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
         <button onclick="window.saveSystemSettings()" id="btnSaveSys" class="bg-gradient-to-r from-brand to-purple-600 hover:from-brandHover hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-brand/30 w-full sm:w-auto uppercase tracking-widest text-xs">
             SIMPAN KONFIGURASI SISTEM
@@ -3975,19 +3972,29 @@ window.saveSystemSettings = async () => {
         
         // --- DATA INTEGRASI EMAIL ---
         emailProvider: provider,
+        
+        // 1. MAILKETING
         MAILKETING_STATUS: provider === 'MAILKETING' ? 'ON' : 'OFF',
-        MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN').value,
-        MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL').value,
-        MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME').value,
+        MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN').value || '',
+        MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL').value || '',
+        MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME').value || '',
         
+        // 2. JOWMAIL
         JOWMAIL_STATUS: provider === 'JOWMAIL' ? 'ON' : 'OFF',
-        JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value,
-        JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value,
+        JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value || '',
+        JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value || '',
+
+        // 3. KIRIM.EMAIL (INI YANG TADI ILANG, SEKARANG UDAH ADA)
+        KIRIMEMAIL_STATUS: provider === 'KIRIMEMAIL' ? 'ON' : 'OFF',
+        KIRIMEMAIL_AUTH_ID: document.getElementById('KIRIMEMAIL_AUTH_ID')?.value || '',
+        KIRIMEMAIL_AUTH_TOKEN: document.getElementById('KIRIMEMAIL_AUTH_TOKEN')?.value || '',
+        KIRIMEMAIL_LIST_ID: document.getElementById('KIRIMEMAIL_LIST_ID')?.value || '',
         
-        SMTP_HOST: document.getElementById('SMTP_HOST').value,
-        SMTP_PORT: document.getElementById('SMTP_PORT').value,
-        SMTP_USER: document.getElementById('SMTP_USER').value,
-        SMTP_PASS: document.getElementById('SMTP_PASS').value
+        // 4. SMTP
+        SMTP_HOST: document.getElementById('SMTP_HOST').value || '',
+        SMTP_PORT: document.getElementById('SMTP_PORT').value || '',
+        SMTP_USER: document.getElementById('SMTP_USER').value || '',
+        SMTP_PASS: document.getElementById('SMTP_PASS').value || ''
     };
 
     try {
