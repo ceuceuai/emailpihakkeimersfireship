@@ -3920,179 +3920,206 @@
     };
 
     // --- LOGIKA BARU: SYSTEM SETTINGS (KONTROL PANEL) ---
-window.renderSystemSettings = () => {
-    try {
-        const config = window.appState.systemSettings || {};
-        console.log("Rendering System Settings with data:", config);
-
-        const elements = {
-            'sysUniqueMode': config.KODE_UNIK_MODE || 'TAMBAH',
-            'sysUniqueMax': config.KODE_UNIK_MAX || '500',
-            'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
-            'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30',
+// ==========================================
+    // RENDER SYSTEM SETTINGS (CONTROL PANEL)
+    // ==========================================
+    window.renderSystemSettings = () => {
+        try {
+            const config = window.appState.systemSettings || {};
             
-            // --- LOAD DATA EMAIL ---
-            'sysEmailProvider': config.emailProvider || 'GOOGLE',
-            'MAILKETING_TOKEN': config.MAILKETING_TOKEN || '',
-            'MAILKETING_FROM_EMAIL': config.MAILKETING_FROM_EMAIL || '',
-            'MAILKETING_FROM_NAME': config.MAILKETING_FROM_NAME || '',
-            
-            'JOWMAIL_TOKEN': config.JOWMAIL_TOKEN || '',
-            'JOWMAIL_LIST_ID': config.JOWMAIL_LIST_ID || '',
+            // PAGAR PELINDUNG: Cek elemen kunci. Jika tidak ada, jangan render (biar gak blank).
+            if (!document.getElementById('sysUniqueMode')) return;
 
-            // Tambahkan Kirim.Email biar muncul di UI
-            'KIRIMEMAIL_AUTH_ID': config.KIRIMEMAIL_AUTH_ID || '',
-            'KIRIMEMAIL_AUTH_TOKEN': config.KIRIMEMAIL_AUTH_TOKEN || '',
-            'KIRIMEMAIL_LIST_ID': config.KIRIMEMAIL_LIST_ID || '',
+            console.log("Rendering System Settings with data:", config);
 
-            'SMTP_HOST': config.SMTP_HOST || '',
-            'SMTP_PORT': config.SMTP_PORT || '',
-            'SMTP_USER': config.SMTP_USER || '',
-            'SMTP_PASS': config.SMTP_PASS || '',
+            const elements = {
+                'sysUniqueMode': config.KODE_UNIK_MODE || 'TAMBAH',
+                'sysUniqueMax': config.KODE_UNIK_MAX || '500',
+                'sysAffLock': config.AFFILIATE_LOCK || 'TRUE',
+                'sysCookieDays': config.AFFILIATE_COOKIE_DURATION || '30',
+                
+                // --- LOAD DATA EMAIL ---
+                'sysEmailProvider': config.emailProvider || 'GOOGLE',
+                'MAILKETING_TOKEN': config.MAILKETING_TOKEN || '',
+                'MAILKETING_FROM_EMAIL': config.MAILKETING_FROM_EMAIL || '',
+                'MAILKETING_FROM_NAME': config.MAILKETING_FROM_NAME || '',
+                
+                'JOWMAIL_TOKEN': config.JOWMAIL_TOKEN || '',
+                'JOWMAIL_LIST_ID': config.JOWMAIL_LIST_ID || '',
 
-            // --- LOAD DATA QRIS & REDIRECT (BARU) ---
-            'sysQrisUrl': config.QRIS_IMAGE_URL || '',
-            'sysAfterBtnText': config.AFTER_CHECKOUT_BTN_TEXT || '',
-            'sysAfterBtnUrl': config.AFTER_CHECKOUT_BTN_URL || ''
+                // Tambahkan Kirim.Email biar muncul di UI
+                'KIRIMEMAIL_AUTH_ID': config.KIRIMEMAIL_AUTH_ID || '',
+                'KIRIMEMAIL_AUTH_TOKEN': config.KIRIMEMAIL_AUTH_TOKEN || '',
+                'KIRIMEMAIL_LIST_ID': config.KIRIMEMAIL_LIST_ID || '',
+
+                'SMTP_HOST': config.SMTP_HOST || '',
+                'SMTP_PORT': config.SMTP_PORT || '',
+                'SMTP_USER': config.SMTP_USER || '',
+                'SMTP_PASS': config.SMTP_PASS || '',
+
+                // --- LOAD DATA QRIS & REDIRECT (BARU) ---
+                'sysQrisUrl': config.QRIS_IMAGE_URL || '',
+                'sysAfterBtnText': config.AFTER_CHECKOUT_BTN_TEXT || '',
+                'sysAfterBtnUrl': config.AFTER_CHECKOUT_BTN_URL || ''
+            };
+
+            for (const [id, value] of Object.entries(elements)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.value = value;
+                } else {
+                    console.warn(`Element ID '${id}' tidak ditemukan di HTML.`);
+                }
+            }
+
+            // Jalankan toggle biar form yang bener muncul pas pertama kali buka
+            if (typeof toggleEmailForms === 'function') toggleEmailForms();
+
+        } catch (error) {
+            console.error("Gagal render System Settings:", error);
+        }
+    };
+
+    // ==========================================================
+    // TAHAP 1: INTERAKSI UI EMAIL INTEGRATION
+    // ==========================================================
+    window.toggleEmailForms = () => {
+        const elSelector = document.getElementById('sysEmailProvider');
+        if (!elSelector) return;
+        
+        const val = elSelector.value;
+        document.querySelectorAll('.email-config-form').forEach(el => el.classList.add('hidden'));
+        
+        const target = document.getElementById('form-' + val);
+        if (target) target.classList.remove('hidden');
+    };
+
+    window.testProviderConnection = async (provider) => {
+        const testEmail = prompt("Masukkan email tujuan untuk test:");
+        if (!testEmail) return;
+
+        // Siapkan data yang mau dikirim
+        const payload = {
+            provider: provider.toLowerCase(),
+            test_email: testEmail,
+            // Ambil data dari inputan UI secara real-time
+            token: document.getElementById(provider + '_TOKEN')?.value || '',
+            list_id: document.getElementById(provider + '_LIST_ID')?.value || '',
+            host: document.getElementById('SMTP_HOST')?.value || '',
+            port: document.getElementById('SMTP_PORT')?.value || '',
+            user: document.getElementById('SMTP_USER')?.value || '',
+            pass: document.getElementById('SMTP_PASS')?.value || '',
+            from_email: document.getElementById('MAILKETING_FROM_EMAIL')?.value || '',
+            from_name: document.getElementById('MAILKETING_FROM_NAME')?.value || ''
         };
 
-        for (const [id, value] of Object.entries(elements)) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.value = value;
+        try {
+            // PAKAI apiCall (Bukan google.script.run)
+            const res = await apiCall('testThirdParty', payload);
+            
+            if (res.success) {
+                alert("✅ " + res.message);
             } else {
-                console.warn(`Element ID '${id}' tidak ditemukan di HTML.`);
+                alert("❌ " + (res.message || res.error || "Gagal koneksi"));
+            }
+        } catch (e) {
+            alert("Terjadi kesalahan koneksi ke server Apps Script.");
+            console.error("Test Connection Error:", e);
+        }
+    };
+
+    // ==========================================================
+    // TAHAP 2: SAVE SYSTEM SETTINGS (DENGAN DATA EMAIL)
+    // ==========================================================
+    window.saveSystemSettings = async () => {
+        const btn = document.getElementById('btnSaveSys'); 
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Saving...';
+        }
+
+        const providerEl = document.getElementById('sysEmailProvider');
+        if(!providerEl) return;
+        const provider = providerEl.value;
+
+        const payload = {
+            KODE_UNIK_MODE: document.getElementById('sysUniqueMode').value,
+            KODE_UNIK_MAX: document.getElementById('sysUniqueMax').value,
+            AFFILIATE_LOCK: document.getElementById('sysAffLock').value,
+            AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays').value,
+            
+            // --- DATA INTEGRASI EMAIL ---
+            emailProvider: provider,
+            
+            // Status ON/OFF Otomatis
+            MAILKETING_STATUS: provider === 'MAILKETING' ? 'ON' : 'OFF',
+            JOWMAIL_STATUS: provider === 'JOWMAIL' ? 'ON' : 'OFF',
+            KIRIMEMAIL_STATUS: provider === 'KIRIMEMAIL' ? 'ON' : 'OFF',
+            SMTP_STATUS: provider === 'SMTP' ? 'ON' : 'OFF',
+
+            // Data Mailketing
+            MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN').value || '',
+            MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL').value || '',
+            MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME').value || '',
+            
+            // Data Jowmail
+            JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value || '',
+            JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value || '',
+
+            // Data Kirim.Email
+            KIRIMEMAIL_AUTH_ID: document.getElementById('KIRIMEMAIL_AUTH_ID')?.value || '',
+            KIRIMEMAIL_AUTH_TOKEN: document.getElementById('KIRIMEMAIL_AUTH_TOKEN')?.value || '',
+            KIRIMEMAIL_LIST_ID: document.getElementById('KIRIMEMAIL_LIST_ID')?.value || '',
+            
+            // Data SMTP
+            SMTP_HOST: document.getElementById('SMTP_HOST').value || '',
+            SMTP_PORT: document.getElementById('SMTP_PORT').value || '',
+            SMTP_USER: document.getElementById('SMTP_USER').value || '',
+            SMTP_PASS: document.getElementById('SMTP_PASS').value || '',
+
+            // --- TAMBAHAN BARU: QRIS & DYNAMIC REDIRECT ---
+            QRIS_IMAGE_URL: document.getElementById('sysQrisUrl')?.value || '',
+            AFTER_CHECKOUT_BTN_TEXT: document.getElementById('sysAfterBtnText')?.value || '',
+            AFTER_CHECKOUT_BTN_URL: document.getElementById('sysAfterBtnUrl')?.value || ''
+        };
+
+        try {
+            const res = await apiCall('saveSystemSettings', payload);
+            if (res.success) {
+                window.showToast("Konfigurasi sistem berhasil disimpan!", "success");
+                window.appState.systemSettings = payload; 
+            } else {
+                window.showToast(res.error || "Gagal menyimpan", "error");
+            }
+        } catch (e) {
+            window.showToast("Terjadi kesalahan koneksi ke server Apps Script", "error");
+            console.error(e);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'SIMPAN KONFIGURASI SISTEM';
             }
         }
-
-        // Jalankan toggle biar form yang bener muncul pas pertama kali buka
-        if (typeof toggleEmailForms === 'function') toggleEmailForms();
-
-    } catch (error) {
-        console.error("Gagal render System Settings:", error);
-    }
-};
-
-// ==========================================================
-// TAHAP 1: INTERAKSI UI EMAIL INTEGRATION (SUNTIK DI SINI)
-// ==========================================================
-window.toggleEmailForms = () => {
-    const elSelector = document.getElementById('sysEmailProvider');
-    if (!elSelector) return;
-    
-    const val = elSelector.value;
-    document.querySelectorAll('.email-config-form').forEach(el => el.classList.add('hidden'));
-    
-    const target = document.getElementById('form-' + val);
-    if (target) target.classList.remove('hidden');
-};
-
-window.testProviderConnection = async (provider) => {
-    const testEmail = prompt("Masukkan email tujuan untuk test:");
-    if (!testEmail) return;
-
-    // Siapkan data yang mau dikirim
-    const payload = {
-        provider: provider.toLowerCase(),
-        test_email: testEmail,
-        // Ambil data dari inputan UI secara real-time
-        token: document.getElementById(provider + '_TOKEN')?.value || '',
-        list_id: document.getElementById(provider + '_LIST_ID')?.value || '',
-        host: document.getElementById('SMTP_HOST')?.value || '',
-        port: document.getElementById('SMTP_PORT')?.value || '',
-        user: document.getElementById('SMTP_USER')?.value || '',
-        pass: document.getElementById('SMTP_PASS')?.value || '',
-        from_email: document.getElementById('MAILKETING_FROM_EMAIL')?.value || '',
-        from_name: document.getElementById('MAILKETING_FROM_NAME')?.value || ''
     };
 
-    try {
-        // PAKAI apiCall (Bukan google.script.run)
-        const res = await apiCall('testThirdParty', payload);
-        
-        if (res.success) {
-            alert("✅ " + res.message);
-        } else {
-            alert("❌ " + (res.message || res.error || "Gagal koneksi"));
-        }
-    } catch (e) {
-        alert("Terjadi kesalahan koneksi ke server Apps Script.");
-        console.error("Test Connection Error:", e);
-    }
-};
-// ==========================================================
-// TAHAP 2: SAVE SYSTEM SETTINGS (DENGAN DATA EMAIL)
-// ==========================================================
-window.saveSystemSettings = async () => {
-    const btn = document.getElementById('btnSaveSys'); 
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> Saving...';
-    }
-
-    const provider = document.getElementById('sysEmailProvider').value;
-
-    const payload = {
-        KODE_UNIK_MODE: document.getElementById('sysUniqueMode').value,
-        KODE_UNIK_MAX: document.getElementById('sysUniqueMax').value,
-        AFFILIATE_LOCK: document.getElementById('sysAffLock').value,
-        AFFILIATE_COOKIE_DURATION: document.getElementById('sysCookieDays').value,
-        
-        // --- DATA INTEGRASI EMAIL ---
-        emailProvider: provider,
-        
-        // Status ON/OFF Otomatis
-        MAILKETING_STATUS: provider === 'MAILKETING' ? 'ON' : 'OFF',
-        JOWMAIL_STATUS: provider === 'JOWMAIL' ? 'ON' : 'OFF',
-        KIRIMEMAIL_STATUS: provider === 'KIRIMEMAIL' ? 'ON' : 'OFF',
-        SMTP_STATUS: provider === 'SMTP' ? 'ON' : 'OFF',
-
-        // Data Mailketing
-        MAILKETING_TOKEN: document.getElementById('MAILKETING_TOKEN').value || '',
-        MAILKETING_FROM_EMAIL: document.getElementById('MAILKETING_FROM_EMAIL').value || '',
-        MAILKETING_FROM_NAME: document.getElementById('MAILKETING_FROM_NAME').value || '',
-        
-        // Data Jowmail
-        JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value || '',
-        JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value || '',
-
-        // Data Kirim.Email
-        KIRIMEMAIL_AUTH_ID: document.getElementById('KIRIMEMAIL_AUTH_ID')?.value || '',
-        KIRIMEMAIL_AUTH_TOKEN: document.getElementById('KIRIMEMAIL_AUTH_TOKEN')?.value || '',
-        KIRIMEMAIL_LIST_ID: document.getElementById('KIRIMEMAIL_LIST_ID')?.value || '',
-        
-        // Data SMTP
-        SMTP_HOST: document.getElementById('SMTP_HOST').value || '',
-        SMTP_PORT: document.getElementById('SMTP_PORT').value || '',
-        SMTP_USER: document.getElementById('SMTP_USER').value || '',
-        SMTP_PASS: document.getElementById('SMTP_PASS').value || '',
-
-        // --- TAMBAHAN BARU: QRIS & DYNAMIC REDIRECT ---
-        // Sesuai dengan ID input yang kita buat tadi
-        QRIS_IMAGE_URL: document.getElementById('sysQrisUrl')?.value || '',
-        AFTER_CHECKOUT_BTN_TEXT: document.getElementById('sysAfterBtnText')?.value || '',
-        AFTER_CHECKOUT_BTN_URL: document.getElementById('sysAfterBtnUrl')?.value || ''
+    window.applyVoucher = async () => { 
+        const cd = document.getElementById('coVoucherInput').value.toUpperCase().trim(); 
+        if(!cd) return; 
+        try { 
+            const r = await apiCall('getCoupons'); 
+            const f = (r.data||[]).find(x => x.code === cd); 
+            if(f && (f.applicableProductId === 'all' || String(f.applicableProductId) === String(window.appState.currentCheckoutProduct.id))){ 
+                window.appState.currentCheckoutCoupon = f; 
+                window.showToast("Kupon diterapkan!"); 
+                window.recalculateCheckout(); 
+            } else {
+                window.appState.currentCheckoutCoupon = null; 
+                window.recalculateCheckout(); 
+                window.showToast("Kupon tidak valid!", "error");
+            } 
+        } catch(e) { console.error(e); } 
     };
 
-    try {
-        const res = await apiCall('saveSystemSettings', payload);
-        if (res.success) {
-            window.showToast("Konfigurasi sistem berhasil disimpan!", "success");
-            // Update state aplikasi agar sinkron tanpa refresh
-            window.appState.systemSettings = payload; 
-        } else {
-            window.showToast(res.error || "Gagal menyimpan", "error");
-        }
-    } catch (e) {
-        window.showToast("Terjadi kesalahan koneksi ke server Apps Script", "error");
-        console.error(e);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = 'SIMPAN KONFIGURASI SISTEM';
-        }
-    }
-};
     window.applyLogo = (src) => { 
         const l=document.getElementById('appLogoSidebar'); 
         if(src){ if(l){l.src=src;l.classList.remove('hidden');} } else { if(l){l.src='';l.classList.add('hidden');} } 
