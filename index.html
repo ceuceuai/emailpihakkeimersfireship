@@ -3984,13 +3984,14 @@ window.saveSystemSettings = async () => {
         JOWMAIL_TOKEN: document.getElementById('JOWMAIL_TOKEN').value || '',
         JOWMAIL_LIST_ID: document.getElementById('JOWMAIL_LIST_ID').value || '',
 
-        // 3. KIRIM.EMAIL (INI YANG TADI ILANG, SEKARANG UDAH ADA)
+        // 3. KIRIM.EMAIL
         KIRIMEMAIL_STATUS: provider === 'KIRIMEMAIL' ? 'ON' : 'OFF',
         KIRIMEMAIL_AUTH_ID: document.getElementById('KIRIMEMAIL_AUTH_ID')?.value || '',
         KIRIMEMAIL_AUTH_TOKEN: document.getElementById('KIRIMEMAIL_AUTH_TOKEN')?.value || '',
         KIRIMEMAIL_LIST_ID: document.getElementById('KIRIMEMAIL_LIST_ID')?.value || '',
         
-        // 4. SMTP
+        // 4. SMTP (INI YANG DITAMBAHIN STATUSNYA)
+        SMTP_STATUS: provider === 'SMTP' ? 'ON' : 'OFF', // Baris wajib biar di Sheet jadi ON
         SMTP_HOST: document.getElementById('SMTP_HOST').value || '',
         SMTP_PORT: document.getElementById('SMTP_PORT').value || '',
         SMTP_USER: document.getElementById('SMTP_USER').value || '',
